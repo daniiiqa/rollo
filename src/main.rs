@@ -33,6 +33,19 @@ fn pidfile() -> PathBuf {
 }
 
 fn main() {
+    // rollo no lleva argumentos: --help/--version contestan y lo demás es
+    // error, pero nunca se abre la vista por un argumento
+    if let Some(a) = std::env::args().nth(1) {
+        match a.as_str() {
+            "-h" | "--help" => println!("uso: rollo   (la vista de workspaces; otra vez `rollo` la cierra)"),
+            "-V" | "--version" => println!("rollo {}", env!("CARGO_PKG_VERSION")),
+            otro => {
+                eprintln!("rollo: no entiendo «{otro}» (rollo --help)");
+                std::process::exit(2);
+            }
+        }
+        return;
+    }
     // otra vez `rollo` con uno abierto: que se cierre (SUPER+TAB de ida y vuelta)
     if let Some(pid) = std::fs::read_to_string(pidfile()).ok().and_then(|p| p.trim().parse::<i32>().ok())
         && unsafe { libc::kill(pid, 0) } == 0
